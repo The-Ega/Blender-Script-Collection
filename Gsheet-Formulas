@@ -1,0 +1,16 @@
+To filter and miss match 2 Columns.
+=FILTER(B1:B, ISNA(MATCH(B1:B, C1:C, 0)), B1:B <> "")
+
+Trim Unused String
+=TRIM(REGEXREPLACE(REGEXREPLACE(D2:D, "(?i)\b(lip|arm|head|leg|hair)\b", ""), "\s+", " "))
+
+Like above, but separate the left and right
+=LET(
+  text, A1,
+  cleaned, TRIM(REGEXREPLACE(REGEXREPLACE(text, "(?i)\b(arm|head|leg|hair|right|left)\b", ""), "\s+", " ")),
+  hasRight, REGEXMATCH(text, "(?i)\bright\b"),
+  hasLeft, REGEXMATCH(text, "(?i)\bleft\b"),
+  suffix, IF(hasRight, ".R", "") & IF(hasLeft, ".L", ""),
+  IF(cleaned="", suffix, cleaned & suffix)
+)
+
