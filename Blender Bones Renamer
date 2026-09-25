@@ -1,0 +1,73 @@
+import bpy
+
+def rename_bones_from_paste():
+    # ====================== PASTE YOUR GOOGLE SHEET DATA HERE ======================
+    data = """
+
+    """.strip()
+    # =============================================================================
+
+    rename_dict = {}
+    
+    for line in data.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Split by tab (normal when copying from Google Sheets)
+        parts = line.split('\t')
+        
+        if len(parts) >= 2:
+            old_name = parts[0].strip()
+            new_name = parts[1].strip()
+            
+            if old_name and new_name:        # Skip if new name is blank
+                rename_dict[old_name] = new_name
+            elif old_name:
+                print(f"→ Skipped (no new name): {old_name}")
+    
+    if not rename_dict:
+        print("No valid rename data found!")
+        return
+
+    # Get active armature
+    obj = bpy.context.active_object
+    if not obj or obj.type != 'ARMATURE':
+        print("❌ Please select your Armature object first!")
+        return
+
+    armature = obj.data
+    renamed_count = 0
+    skipped = []
+
+    # Go to Edit Mode (best for renaming bones)
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    for bone in list(armature.edit_bones):   # list() to avoid modification issues
+        if bone.name in rename_dict:
+            old = bone.name
+            new = rename_dict[old]
+            
+            # Avoid duplicate name conflict
+            if new in armature.edit_bones and new != old:
+                print(f"⚠️  Skipped (name already exists): {old} → {new}")
+                skipped.append(old)
+                continue
+                
+            bone.name = new
+            renamed_count += 1
+            print(f"✅ Renamed: {old} → {new}")
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    print("\n" + "="*60)
+    print(f"✅ Bone renaming completed!")
+    print(f"   Bones successfully renamed : {renamed_count}")
+    print(f"   Total mappings found      : {len(rename_dict)}")
+    if skipped:
+        print(f"   Skipped due to conflicts  : {len(skipped)}")
+    print("="*60)
+
+
+# ====================== RUN THE SCRIPT ======================
+rename_bones_from_paste()
