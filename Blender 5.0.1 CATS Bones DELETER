@@ -1,0 +1,47 @@
+import bpy
+
+# ==================== PASTE YOUR BONE NAMES HERE ====================
+raw_bone_names = """
+
+""".strip()
+
+# Convert the raw text into a clean list
+bone_names = [line.strip() for line in raw_bone_names.splitlines() if line.strip()]
+
+# ===================================================================
+
+armature = bpy.context.active_object
+
+if not armature or armature.type != 'ARMATURE':
+    print("❌ Please select your armature first!")
+else:
+    # Switch to Pose Mode
+    bpy.ops.object.mode_set(mode='POSE')
+    
+    # Deselect everything
+    bpy.ops.pose.select_all(action='DESELECT')
+    
+    selected_count = 0
+    missing = []
+    
+    for name in bone_names:
+        pose_bone = armature.pose.bones.get(name)
+        if pose_bone:
+            # === Blender 5.0+ correct way ===
+            pose_bone.select = True
+            selected_count += 1
+        else:
+            missing.append(name)
+    
+    print(f"Selected {selected_count} bones for merging.")
+    if missing:
+        print(f"⚠️  Missing bones (not found): {missing}")
+    
+    if selected_count > 0:
+        if bpy.ops.cats_manual.merge_weights.poll():
+            bpy.ops.cats_manual.merge_weights()
+            print("✅ Merge Weights completed!")
+        else:
+            print("⚠️  Cannot run Merge Weights. Make sure Cats is installed and you're in Pose Mode.")
+    else:
+        print("No bones matched the list.")
